@@ -1,0 +1,20 @@
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
+  transpileDependencies: true,
+  lintOnSave: false,
+  devServer: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:9090', // 配置好的后端接口地址
+        // 允许跨域
+        // changeOrigin: true,
+        ws: true,
+        pathRewrite: {
+          '^/api': '' // 以'/api'开头的url会进行接口转发
+        }
+      }
+    },
+
+  },
+})
