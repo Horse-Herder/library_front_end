@@ -145,13 +145,13 @@ export default {
         (res) => {
           this.loading = false;
           console.log(res);
-          if (res.status == 0) {
+          if (res.error_code=== 0 ) {
             this.$message({
               showClose: true,
               message: res.msg,
               type: "error",
             });
-          } else if (res.status == 200) {
+          } else if (res.status === 200 && res.error_code=== 1 ) {
             this.$message({
               showClose: true,
               message: res.msg,
@@ -176,7 +176,7 @@ export default {
           this.flag = 1;
           this.searchBooks = res.data;
           console.log(res);
-          if (res.status == 0) {
+          if (res.error_code === 0 || res.status !== 200) {
             this.$message({
               showClose: true,
               message: "未找到相关书籍！",
@@ -343,13 +343,20 @@ export default {
       let bookId = row.bookId;
       delBook(qs.stringify({bookId})).then(res=>{
         console.log(res);
-        if(res.status == 200)
-         this.$message({
+        if(res.status == 200 && res.error_code == 1){
+          this.$message({
             type: "success",
             message: res.msg,
           });
-         this.$store.dispatch("initBooksList");
-         this.$store.dispatch("initReserveList");
+          this.$store.dispatch("initBooksList");
+          this.$store.dispatch("initReserveList");
+        }else{
+          this.$message({
+            type: "error",
+            message: res.msg || "删除失败，请重试",
+          });
+        }
+
     },err=>{
       console.log(err.message);
     })

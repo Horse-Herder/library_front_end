@@ -155,16 +155,23 @@ export default {
       };
       auditComment(qs.stringify(infoObj)).then(
         (res) => {
-          if (res.status == 200)
+          if (res.status === 200 && res.error_code === 1){
             this.$message({
               showClose: true,
               message: "删除评论成功！",
               type: "success",
             });
-          this.$store.dispatch("initReportList");
-          this.$store.dispatch("initCommentsList");
+            this.$store.dispatch("initReportList");
+            this.$store.dispatch("initCommentsList");
 
-          console.log(res);
+            console.log(res);
+          }else{
+            this.$message({
+              type: "error",
+              message: res.msg || "删除评论，请重试",
+            });
+          }
+
         },
         (err) => {
           console.log(err.message);
@@ -176,15 +183,21 @@ export default {
       var infoObj = { commentId, reporterId, reportdate, email, status: 1 };
       auditComment(qs.stringify(infoObj)).then(
         (res) => {
-          if (res.status == 200)
+          if (res.status === 200 && res.error_code === 1) {
             this.$message({
               showClose: true,
               message: "驳回成功！",
               type: "success",
             });
-          this.$store.dispatch("initReportList");
-          this.$store.dispatch("initCommentsList");
-          console.log(res.data);
+            this.$store.dispatch("initReportList");
+            this.$store.dispatch("initCommentsList");
+            console.log(res.data);
+          }else{
+            this.$message({
+              type: "error",
+              message: res.msg || "驳回失败，请重试",
+            });
+          }
         },
         (err) => {
           console.log(err.message);
