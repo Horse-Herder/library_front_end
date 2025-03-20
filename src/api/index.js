@@ -48,10 +48,12 @@ export const searchBook = (bookNameObj) => requests({
 
 
 // 管理员查询借阅接口
-export const initBorrowslist = () => requests({
+export const initBorrowslist = ({ page, pageSize }) => requests({
     url: '/borrowslist',
-    method: 'post'
+    method: 'post',
+    data: { page, pageSize }
 })
+
 export const initReportList = () => requests({
     url: '/initreportlist',
     method: 'post'
@@ -74,9 +76,10 @@ export const searchBorrow = (infoObj) => requests({
     data:infoObj
 })
 // 管理员获取读者信息接口
-export const initReaderList = () => requests({
+export const initReaderList = ({ page, pageSize }) => requests({
     url: '/initreaderlist',
     method: 'post',
+    data: { page, pageSize }
 })
 // 管理员添加书籍接口
 export const addBooks = (infoObj) => requests({
