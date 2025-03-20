@@ -35,7 +35,7 @@ const mutations = {
     INITRESERVE(state,data){
         // 读者保存预订图书记录
         state.reserve = data||[]
-        state.reserve.forEach((element,index)=>{
+        state.reserve.forEach((element)=>{
             element.bookName = '《'+element.bookName+'》'
         }
             

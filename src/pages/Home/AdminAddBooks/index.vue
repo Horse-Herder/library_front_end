@@ -106,7 +106,7 @@ export default {
           this.author = '',
           this.amount = '',
           this.position = '',
-          this.$store.dispatch('initBooksList')
+              this.$store.dispatch('initBooksList', { page: 1, pageSize: 10 });
 
         } else {
           this.$message({

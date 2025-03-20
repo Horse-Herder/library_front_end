@@ -225,8 +225,9 @@ export default {
     },
     searchBook(e) {
       this.loading = true;
-      const { currentPage, pageSize } = this;
-      const params = qs.stringify({ name: this.name, page: currentPage, pageSize });
+      const { page, pageSize } = this;
+
+      const params = qs.stringify({ isAdmin: this.isAdmin,name: this.name, page: page, pageSize });
       searchBook(params).then(
           (res) => {
             this.loading = false;
