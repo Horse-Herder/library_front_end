@@ -5,10 +5,11 @@ const state = {
 }
 
 const actions = {
-    initBooksList({commit}){
-        initBooksList().then(res=>{
-            console.log(res);
-            
+    initBooksList({commit, rootState}){
+
+        const isAdmin = rootState.User.isAdmin; // 获取 isAdmin 状态
+        console.log()
+        initBooksList(qs.stringify({ isAdmin: isAdmin })).then(res=>{
             if(res.status == 200)
                 commit('INITBOOKSLIST',res.data)
         },err=>console.log(err.message))
