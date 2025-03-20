@@ -14,10 +14,13 @@ export const login = (readerInfo) => requests({
     data: readerInfo
 })
 // 书籍接口
-export const initBooksList = () => requests({
+
+export const initBooksList = (bookNameObj) => requests({
     url: '/books',
-    method: 'post'
-})
+    method: 'post',
+    data: bookNameObj // 传递包含 isAdmin 的对象
+});
+
 // 评论区接口
 export const initCommentsList = () => requests({
     url: '/comments',

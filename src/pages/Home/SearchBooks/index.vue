@@ -32,6 +32,30 @@
                 >修改</el-button
               >
             </el-form-item>
+            <el-form-item label="出版社：">
+              <span>{{ props.row.press }}</span
+              >&nbsp;<el-button
+                v-show="isAdmin"
+                @click="changePress(props.row)"
+                type="text"
+                style="float: right"
+                size="mini"
+                icon="el-icon-edit"
+            >修改</el-button
+            >
+            </el-form-item>
+            <el-form-item label="ISBN：">
+              <span>{{ props.row.isbn }}</span
+              >&nbsp;<el-button
+                v-show="isAdmin"
+                @click="changeISBN(props.row)"
+                type="text"
+                style="float: right"
+                size="mini"
+                icon="el-icon-edit"
+            >修改</el-button
+            >
+            </el-form-item>
             <el-form-item label="图书作者：">
               <span>{{ props.row.author }}</span
               >&nbsp;<el-button
@@ -68,6 +92,20 @@
                 >修改</el-button
               >
             </el-form-item>
+            <el-form-item label="状态：">
+              <el-switch
+                  v-show="isAdmin"
+                  v-model="props.row.status"
+                  style="float: right"
+                  active-text="上线"
+                  inactive-text="未上线"
+                  :active-value="1"
+                  :inactive-value="0"
+                  @change="changeBookStatus(props.row)"
+              >
+              </el-switch>
+            </el-form-item>
+
             <el-form-item label="总库存："
               >&nbsp;&nbsp; <span>{{ props.row.totalAmount }}</span
               >
@@ -92,7 +130,11 @@
       </el-table-column>
       <el-table-column label="图书名称" sortable prop="bookName">
       </el-table-column>
+      <el-table-column sortable label="出版社" prop="press">
+      </el-table-column>
       <el-table-column sortable label="图书作者" prop="author">
+      </el-table-column>
+      <el-table-column sortable label="书号" prop="isbn">
       </el-table-column>
       <el-table-column sortable label="书籍位置" prop="position">
       </el-table-column>
@@ -194,45 +236,11 @@ export default {
       this.flag = 0;
       this.searchBooks = [];
     },
-    changeBookName(row) {
-      console.log(row);
-      var bookId = row.bookId;
-      var status = 1;
-      this.$prompt("请输入书名", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: row.bookName,
-      })
-        .then(({ value }) => {
-          this.$message({
-            type: "success",
-            message: "你修改的书名是: " + value,
-          });
-          // 修改的信息
-          var infoObj = { bookId, value, status };
-          changeBookInfo(qs.stringify(infoObj)).then(
-            (res) => {
-              console.log(res);
-              this.$store.dispatch("initBooksList");
-              this.$store.dispatch("initReserveList");
-            },
-            (err) => {
-              console.log(err.message);
-            }
-          );
-        })
-        .catch(() => {
-          this.$message({
-            type: "info",
-            message: "取消输入",
-          });
-        });
-    },
     changeBookAuthor(row) {
       console.log(row);
       var bookId = row.bookId;
       var status = 2;
-      this.$prompt("请输入作者名", "提示", {
+      this.$prompt("请输入ISBN", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         inputValue: row.author,
@@ -240,7 +248,7 @@ export default {
         .then(({ value }) => {
           this.$message({
             type: "success",
-            message: "你修改的作者名是: " + value,
+            message: "你修改的ISBN是: " + value,
           });
           // 修改的信息
           var infoObj = { bookId, value, status };
@@ -337,6 +345,108 @@ export default {
             message: "取消输入",
           });
         });
+    },
+    changePress(row) {
+      console.log(row);
+      var bookId = row.bookId;
+      var status = 5;
+      this.$prompt("请输入出版社", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputValue: row.press,
+      })
+          .then(({ value }) => {
+            this.$message({
+              type: "success",
+              message: "你修改的出版社是: " + value,
+            });
+            // 修改的信息
+            var infoObj = { bookId, value, status };
+            changeBookInfo(qs.stringify(infoObj)).then(
+                (res) => {
+                  console.log(res);
+                  this.$store.dispatch("initBooksList");
+                  this.$store.dispatch("initReserveList");
+                },
+                (err) => {
+                  console.log(err.message);
+                }
+            );
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "取消输入",
+            });
+          });
+    },
+    changeISBN(row) {
+      console.log(row);
+      var bookId = row.bookId;
+      var status = 6;
+      this.$prompt("请输入ISBN", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputValue: row.isbn,
+      })
+          .then(({ value }) => {
+            this.$message({
+              type: "success",
+              message: "你修改的ISBN是: " + value,
+            });
+            // 修改的信息
+            var infoObj = { bookId, value, status };
+            changeBookInfo(qs.stringify(infoObj)).then(
+                (res) => {
+                  console.log(res);
+                  this.$store.dispatch("initBooksList");
+                  this.$store.dispatch("initReserveList");
+                },
+                (err) => {
+                  console.log(err.message);
+                }
+            );
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "取消输入",
+            });
+          });
+    },
+    changeBookStatus(row) {
+      console.log("修改状态:", row);
+      var bookId = row.bookId;
+
+      let value = row.status; // 1: 上线，0: 未上线
+      let status = 7; // 1: 上线，0: 未上线
+      var infoObj = { bookId, value, status};
+
+      // 发送请求修改状态
+      changeBookInfo(qs.stringify(infoObj))
+          .then((res) => {
+            console.log(res);
+            if (res.status == 200 && res.error_code == 1) {
+              this.$message({
+                type: "success",
+                message: "状态更新成功",
+              });
+            } else {
+              this.$message({
+                type: "error",
+                message: res.msg || "状态更新失败",
+              });
+            }
+            // 刷新图书列表
+            this.$store.dispatch("initBooksList");
+          })
+          .catch((err) => {
+            console.log(err.message);
+            this.$message({
+              type: "error",
+              message: "请求失败：" + err.message,
+            });
+          });
     },
     delBook(row){
       console.log(row);

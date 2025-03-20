@@ -1,5 +1,5 @@
 import {initBooksList} from '@/api'
-import Vue from 'vue'
+import qs from "qs";
 const state = {
    booksList:[],
 }
@@ -20,7 +20,7 @@ const mutations = {
     INITBOOKSLIST(state,data){
         data = data || []
         state.booksList = data.filter(item=>{
-            return item.status == 1
+            return item
         })
     }
 
