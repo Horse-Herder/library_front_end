@@ -10,7 +10,7 @@
     </el-input>
     <el-table
       :data="flag == 0 ? booksList : searchBooks"
-      height="450"
+      height="600"
       style="width: 100%"
       v-loading.fullscreen.lock="loading"
       element-loading-text="正在处理..."
@@ -152,12 +152,23 @@
         </template>
       </el-table-column>
     </el-table>
+    <!-- 分页组件 -->
+    <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="page"
+        :page-sizes="[10, 20, 30, 40]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+    >
+    </el-pagination>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
-import { addReserve, initReserve, searchBook, changeBookInfo,delBook } from "@/api";
+import { addReserve, searchBook, changeBookInfo,delBook } from "@/api";
 import qs from "qs";
 export default {
   name: "SearchBooks",
@@ -171,6 +182,9 @@ export default {
         realDate: "",
       },
       searchBooks: [],
+      // page: 1,
+      // pageSize: 10,
+      // total: 0
     };
   },
   methods: {
@@ -211,30 +225,48 @@ export default {
     },
     searchBook(e) {
       this.loading = true;
-      searchBook(qs.stringify({ name: this.name })).then(
-        (res) => {
-          this.loading = false;
-          e.target.blur();
-          this.flag = 1;
-          this.searchBooks = res.data;
-          console.log(res);
-          if (res.error_code === 0 || res.status !== 200) {
-            this.$message({
-              showClose: true,
-              message: "未找到相关书籍！",
-              type: "error",
-            });
+      const { currentPage, pageSize } = this;
+      const params = qs.stringify({ name: this.name, page: currentPage, pageSize });
+      searchBook(params).then(
+          (res) => {
+            this.loading = false;
+            e.target.blur();
+            this.flag = 1;
+            this.searchBooks = res.data;
+            console.log(res);
+            if (res.error_code === 0 || res.status !== 200) {
+              this.$message({
+                showClose: true,
+                message: "未找到相关书籍！",
+                type: "error",
+              });
+            }
+          },
+          (err) => {
+            this.loading = false;
+            console.log(err.message);
           }
-        },
-        (err) => {
-          this.loading = false;
-          console.log(err.message);
-        }
       );
     },
     clear() {
       this.flag = 0;
       this.searchBooks = [];
+    },
+    handleSizeChange(newSize) {
+      this.pageSize = newSize;
+      if (this.flag === 0) {
+        this.$store.dispatch('initBooksList', { page: this.page, pageSize: newSize });
+      } else {
+        this.searchBook({ target: { blur: () => {} } });
+      }
+    },
+    handleCurrentChange(newPage) {
+      this.page = newPage;
+      if (this.flag === 0) {
+        this.$store.dispatch('initBooksList', { page: newPage, pageSize: this.pageSize });
+      } else {
+        this.searchBook({ target: { blur: () => {} } });
+      }
     },
     changeBookAuthor(row) {
       console.log(row);
@@ -255,7 +287,7 @@ export default {
           changeBookInfo(qs.stringify(infoObj)).then(
             (res) => {
               console.log(res);
-              this.$store.dispatch("initBooksList");
+              this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
               this.$store.dispatch("initReserveList");
             },
             (err) => {
@@ -296,7 +328,7 @@ export default {
                   message: "你修改的位置是: " + value,
                 });
               }
-              this.$store.dispatch("initBooksList");
+              this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
               this.$store.dispatch("initReserveList");
             },
             (err) => {
@@ -331,7 +363,7 @@ export default {
           changeBookInfo(qs.stringify(infoObj)).then(
             (res) => {
               console.log(res);
-              this.$store.dispatch("initBooksList");
+              this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
               this.$store.dispatch("initReserveList");
             },
             (err) => {
@@ -365,7 +397,7 @@ export default {
             changeBookInfo(qs.stringify(infoObj)).then(
                 (res) => {
                   console.log(res);
-                  this.$store.dispatch("initBooksList");
+                  this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
                   this.$store.dispatch("initReserveList");
                 },
                 (err) => {
@@ -399,7 +431,7 @@ export default {
             changeBookInfo(qs.stringify(infoObj)).then(
                 (res) => {
                   console.log(res);
-                  this.$store.dispatch("initBooksList");
+                  this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
                   this.$store.dispatch("initReserveList");
                 },
                 (err) => {
@@ -438,7 +470,7 @@ export default {
               });
             }
             // 刷新图书列表
-            this.$store.dispatch("initBooksList");
+            this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
           })
           .catch((err) => {
             console.log(err.message);
@@ -458,7 +490,7 @@ export default {
             type: "success",
             message: res.msg,
           });
-          this.$store.dispatch("initBooksList");
+          this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
           this.$store.dispatch("initReserveList");
         }else{
           this.$message({
@@ -484,10 +516,19 @@ export default {
       isAdmin(state) {
         return state.User.isAdmin;
       },
+      currentPage(state) {
+        return state.Books.currentPage;
+      },
+      pageSize(state) {
+        return state.Books.pageSize;
+      },
+      total(state) {
+        return state.Books.total;
+      }
     }),
   },
   mounted() {
-    this.$store.dispatch('initBooksList')
+    this.$store.dispatch('initBooksList', { page: this.page, pageSize: this.pageSize });
     console.log(this.searchBooks);
   },
 };
