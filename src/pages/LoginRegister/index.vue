@@ -59,6 +59,7 @@
 <script>
 import axios from 'axios'
 import {register,login} from '@/api'
+import Cookies from 'js-cookie';
 import qs from "qs" 
 import bg01 from './images/bg01.jpg'
 import bg02 from './images/bg02.jpg'
@@ -206,7 +207,11 @@ export default {
                         message: '登录成功！',
                         type: 'success',
                     });
-                    if(this.isAdmin) this.$store.dispatch('setAdminInfo',res)
+
+
+                 Cookies.set('token', res.token, { expires: 1 });
+
+                 if(this.isAdmin) this.$store.dispatch('setAdminInfo',res)
                     else this.$store.dispatch('setReaderInfo',res)
                     this.$store.dispatch('initBooksList')
                     this.$store.dispatch('initCommentsList')
