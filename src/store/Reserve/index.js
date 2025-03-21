@@ -24,7 +24,6 @@ const actions = {
             console.log(err.message);
         })
     },
-
 }
 
 const mutations = {

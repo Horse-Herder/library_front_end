@@ -1,79 +1,93 @@
 <template>
-  <el-table
-    :data="borrows"
-    style="width: 100%"
-    height="450"
-    v-loading.fullscreen.lock="loading"
-    element-loading-text="正在处理..."
-    element-loading-spinner="el-icon-loading"
-    element-loading-background="rgba(0, 0, 0, 0.8)"
-  >
-    <el-table-column type="expand">
-      <template slot-scope="props">
-        <el-form label-position="left" class="demo-table-expand">
-          <el-form-item
-            label="借书日期："
-            v-if="props.row.borrowDate != '9999-12-31 00:00:00'"
+  <div>
+    <el-table
+        :data="borrows"
+        style="width: 100%"
+        height="450"
+        v-loading.fullscreen.lock="loading"
+        element-loading-text="正在处理..."
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+      <el-table-column type="expand">
+        <template slot-scope="props">
+          <el-form label-position="left" class="demo-table-expand">
+            <el-form-item
+                label="借书日期："
+                v-if="props.row.borrowDate != '9999-12-31 00:00:00'"
+            >
+              <span>{{ props.row.borrowDate }}</span>
+            </el-form-item>
+            <el-form-item label="应还日期：">
+              <span>{{ props.row.returnDate }}</span>
+            </el-form-item>
+            <el-form-item label="书籍名称：">
+              <span>{{ props.row.bookName }}</span>
+            </el-form-item>
+            <el-form-item label="图书作者：">
+              <span>{{ props.row.author }}</span>
+            </el-form-item>
+            <el-form-item label="图书状态：">
+              <span>{{ props.row.status }}</span>
+            </el-form-item>
+          </el-form>
+        </template>
+      </el-table-column>
+      <el-table-column prop="borrowDate" label="借阅日期"> </el-table-column>
+      <el-table-column prop="bookName" label="书籍名称"> </el-table-column>
+      <el-table-column prop="author" label="图书作者"> </el-table-column>
+
+      <el-table-column label="操作" width="200">
+        <template slot-scope="scope">
+          <el-popconfirm
+              title="确认归还该书籍吗？"
+              @confirm="returnBook(scope.$index, scope.row)"
+              v-if="scope.row.status != '已还'"
           >
-            <span>{{ props.row.borrowDate }}</span>
-          </el-form-item>
-          <el-form-item label="应还日期：">
-            <span>{{ props.row.returnDate }}</span>
-          </el-form-item>
-          <el-form-item label="书籍名称：">
-            <span>{{ props.row.bookName }}</span>
-          </el-form-item>
-          <el-form-item label="图书作者：">
-            <span>{{ props.row.author }}</span>
-          </el-form-item>
-          <el-form-item label="图书状态：">
-            <span>{{ props.row.status }}</span>
-          </el-form-item>
-        </el-form>
-      </template>
-    </el-table-column>
-    <el-table-column prop="borrowDate" label="借阅日期"> </el-table-column>
-    <el-table-column prop="bookName" label="书籍名称"> </el-table-column>
-    <el-table-column prop="author" label="图书作者"> </el-table-column>
-
-    <el-table-column label="操作" width="200">
-      <template slot-scope="scope">
-        <el-popconfirm
-          title="确认归还该书籍吗？"
-          @confirm="returnBook(scope.$index, scope.row)"
-          v-if="scope.row.status != '已还'"
-        >
-          <el-button
-            size="mini"
-            type="primary"
-            plain
-            style="margin-right: 10px"
-            slot="reference"
+            <el-button
+                size="mini"
+                type="primary"
+                plain
+                style="margin-right: 10px"
+                slot="reference"
             >还书
-          </el-button>
-        </el-popconfirm>
+            </el-button>
+          </el-popconfirm>
 
-        <el-popconfirm
-          title="确认续借该书籍吗？"
-          @confirm="continueBorrowBook(scope.$index, scope.row)"
-          v-if="scope.row.status != '已还'"
-        >
-          <el-button
-            size="mini"
-            type="success"
-            :plain="scope.row.status == '未还'"
-            :disabled="scope.row.status == '续借'"
-            slot="reference"
+          <el-popconfirm
+              title="确认续借该书籍吗？"
+              @confirm="continueBorrowBook(scope.$index, scope.row)"
+              v-if="scope.row.status != '已还'"
+          >
+            <el-button
+                size="mini"
+                type="success"
+                :plain="scope.row.status == '未还'"
+                :disabled="scope.row.status == '续借'"
+                slot="reference"
             >续借
-          </el-button>
-        </el-popconfirm>
+            </el-button>
+          </el-popconfirm>
 
-        <el-button size="mini" disabled v-if="scope.row.status == '已还'"
+          <el-button size="mini" disabled v-if="scope.row.status == '已还'"
           >已还
-        </el-button>
-      </template>
-    </el-table-column>
-  </el-table>
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!-- 分页组件 -->
+    <el-pagination
+        @size-change="handleReadBorrowSizeChange"
+        @current-change="handleReadBorrowCurrentChange"
+        :current-page="page"
+        :page-sizes="[2, 10, 20, 30, 40]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+    >
+    </el-pagination>
+  </div>
+
 </template>
 
 <script>
@@ -151,6 +165,14 @@ export default {
         );
       });
     },
+    handleReadBorrowSizeChange(newSize) {
+      this.pageSize = newSize;
+      this.$store.dispatch('initBorrows', { readerId: this.readerId ,page: this.page, pageSize: newSize });
+    },
+    handleReadBorrowCurrentChange(newPage) {
+      this.page = newPage;
+      this.$store.dispatch('initBorrows', { readerId: this.readerId ,page: newPage, pageSize: this.pageSize });
+    },
   },
   computed: {
     ...mapState({
@@ -163,9 +185,11 @@ export default {
     }),
   },
   mounted() {
+    const { pageReadBorrow, pageSizeReadBorrow } = this;
+
     this.$store.dispatch(
       "initBorrows",
-      qs.stringify({ readerId: this.readerId })
+      qs.stringify({ readerId: this.readerId ,page:pageReadBorrow, pageSize:pageSizeReadBorrow})
     );
   },
 };

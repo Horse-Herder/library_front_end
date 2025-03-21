@@ -98,12 +98,23 @@
         </template>
       </el-table-column>
     </el-table>
+    <!-- 分页组件 -->
+    <el-pagination
+        @size-change="handleBorrowSizeChange"
+        @current-change="handleBorrowCurrentChange"
+        :current-page="page"
+        :page-sizes="[2, 10, 20, 30, 40]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+    >
+    </el-pagination>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
-import { deleteBorrow, searchBorrow,alertPerson } from "@/api";
+import {deleteBorrow, searchBorrow, alertPerson, initBorrowslist} from "@/api";
 import qs from "qs";
 export default {
   name: "AdminBorrows",
@@ -148,14 +159,14 @@ export default {
     },
     searchInfo(e) {
       this.loading = true;
-      searchBorrow(qs.stringify({ info: this.info })).then(
+      this.$store.dispatch('initBorrowsList',{ info: this.info, page: this.page, pageSize:this.pageSize }).then(
         (res) => {
           this.loading = false;
           e.target.blur();
           console.log(res);
           this.searchMessage = res.data;
           this.flag = 1;
-          if (res.status == 0) {
+          if (res.status == 0 && res.error_code == 1) {
             this.$message({
               showClose: true,
               message: "查询结果为空！",
@@ -181,9 +192,18 @@ export default {
         console.log(err.message);
       })
     },
+    handleBorrowSizeChange(newSize) {
+      this.pageSize = newSize;
+      this.$store.dispatch('initBorrowsList', { info: this.info, page: this.page, pageSize: newSize });
+    },
+    handleBorrowCurrentChange(newPage) {
+      this.page = newPage;
+      this.$store.dispatch('initBorrowsList', {info: this.info, page: newPage, pageSize: this.pageSize });
+
+    },
   },
   mounted(){
-    this.$store.dispatch('initBorrowsList')
+    this.$store.dispatch('initBorrowsList',    {info: this.info, page: this.page, pageSize: this.pageSize });
   }
 };
 </script>

@@ -45,13 +45,14 @@ export const searchBook = (bookNameObj) => requests({
     data: bookNameObj
 })
 
-
-
 // 管理员查询借阅接口
-export const initBorrowslist = ({ page, pageSize }) => requests({
+export const initBorrowslist = (BorrowsDataObj) => requests({
     url: '/borrowslist',
     method: 'post',
-    data: { page, pageSize }
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    data: BorrowsDataObj,
 })
 
 export const initReportList = () => requests({
@@ -70,11 +71,11 @@ export const deleteBorrow = (borrowObj) => requests({
     data:borrowObj
 })
 // 管理员通过读者ID查找借阅记录接口
-export const searchBorrow = (infoObj) => requests({
-    url: '/searchborrow',
-    method: 'post',
-    data:infoObj
-})
+// export const searchBorrow = (c) => requests({
+//     url: '/searchborrow',
+//     method: 'post',
+//     data: {info, page, pageSize}
+// })
 // 管理员获取读者信息接口
 export const initReaderList = ({ page, pageSize }) => requests({
     url: '/initreaderlist',
@@ -117,8 +118,6 @@ export const alertPerson = (infoObj) => requests({
     method: 'post',
     data:infoObj
 })
-
-
 
 
 // 读者请求借阅记录接口
