@@ -114,7 +114,7 @@
 
 <script>
 import { mapState } from "vuex";
-import {deleteBorrow, searchBorrow, alertPerson, initBorrowslist} from "@/api";
+import {deleteBorrow, alertPerson} from "@/api";
 import qs from "qs";
 export default {
   name: "AdminBorrows",
@@ -132,6 +132,9 @@ export default {
       borrowsList(state) {
         return state.Borrows.borrowsList;
       },
+      total(state) {
+        return state.Borrows.total;
+      }
     }),
   },
   methods: {
