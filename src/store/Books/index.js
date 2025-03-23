@@ -5,10 +5,12 @@ const state = {
 }
 
 const actions = {
-    initBooksList({commit}){
-        initBooksList().then(res=>{
+    initBooksList({commit, rootState}){
+        const isAdmin = rootState.User.isAdmin; // 获取 isAdmin 状态
+        console.log()
+        initBooksList(qs.stringify({ isAdmin: isAdmin })).then(res=>{
+
             console.log(res);
-            
             if(res.status == 200)
                 commit('INITBOOKSLIST',res.data)
         },err=>console.log(err.message))
@@ -18,10 +20,7 @@ const actions = {
 const mutations = {
   
     INITBOOKSLIST(state,data){
-        data = data || []
-        state.booksList = data.filter(item=>{
-            return item
-        })
+        state.booksList  = data || []
     }
 
 

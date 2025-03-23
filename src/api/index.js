@@ -45,8 +45,6 @@ export const searchBook = (bookNameObj) => requests({
     data: bookNameObj
 })
 
-
-
 // 管理员查询借阅接口
 export const initBorrowslist = () => requests({
     url: '/borrowslist',
