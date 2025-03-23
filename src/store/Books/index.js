@@ -11,7 +11,7 @@ const actions = {
         initBooksList(qs.stringify({ isAdmin: isAdmin })).then(res=>{
 
             console.log(res);
-            if(res.status == 200)
+            if(res.status === 200 && res.error_code === 1)
                 commit('INITBOOKSLIST',res.data)
         },err=>console.log(err.message))
     }
