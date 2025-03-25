@@ -1,6 +1,7 @@
 // 对所有的api接口进行统一管理
 import requests from './request'
 
+
 // 注册接口
 export const register = (readerInfo) => requests({
     url: '/register',
@@ -13,6 +14,13 @@ export const login = (readerInfo) => requests({
     method: 'post',
     data: readerInfo
 })
+
+export const initLogoutInfo = (loginObj)=>requests({
+    url:'/logout',
+    method:'post',
+    data:loginObj
+})
+
 // 书籍接口
 
 export const initBooksList = (bookNameObj) => requests({

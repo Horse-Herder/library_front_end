@@ -1,4 +1,4 @@
-import {initReaderList} from '@/api'
+import {initLogoutInfo, initReaderList} from '@/api'
 
 const state = {
    adminName:'',
@@ -8,6 +8,7 @@ const state = {
     readerPhone:'',
    },
    readerList:[],
+    initLogoutList:[],
    isAdmin:false
 }
 
@@ -23,7 +24,12 @@ const actions = {
             console.log(res);
         commit('INITREADERLIST',res.data)
         },err=>console.log(err.message))
-    }
+    },
+    initLogoutInfo({commit}, data){
+        initLogoutInfo(data).then(res=>{
+            commit('initLogoutList',res.data)
+        },err=>console.log(err.message))
+    },
 }
 
 const mutations = {
@@ -41,6 +47,9 @@ const mutations = {
     },
     INITREADERLIST(state,data){
         state.readerList = data
+    },
+    initLogoutList(state,data){
+        state.initLogoutList = data
     }
 }
 

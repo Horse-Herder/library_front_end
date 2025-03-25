@@ -1,8 +1,8 @@
 <template>
     <div class="main">
         <el-radio-group v-model="isCollapse" style="margin-bottom: 20px;">
-        <el-radio-button :label="false">展开</el-radio-button>
-        <el-radio-button :label="true">收起</el-radio-button>
+        <el-radio-button :label="true">展开</el-radio-button>
+        <el-radio-button :label="false">收起</el-radio-button>
         </el-radio-group>
          <el-menu
       default-active="1"
@@ -58,7 +58,7 @@
               <span>切换账号</span>
         </el-menu-item>
         </el-submenu>
-         <el-menu-item index="1-2" @click="toggleUser">
+         <el-menu-item index="1-2" @click="initLogout">
         <i class="el-icon-switch-button"></i>
         <span slot="title">退出账号</span>
       </el-menu-item>
@@ -69,6 +69,11 @@
 
 <script>
 import {mapState} from 'vuex'
+import Cookies from "js-cookie";
+import {initLogoutInfo} from "@/api";
+import qs from "qs";
+
+
 export default {
   name: "ReaderBanner",
   data() {
@@ -98,8 +103,80 @@ export default {
       console.log(2);
     },
     toggleUser() {
-      this.$router.push("/LoginRegister");
-    }
+      let data = {
+        phone: Cookies.get("username"),
+        isAdmin: Cookies.get("isAdmin"),
+      }
+      initLogoutInfo(qs.stringify(data)).then(res=>{
+
+        if(res.status === 200 && res.error_code ===1){
+          Cookies.remove("username")
+          Cookies.remove("isAdmin")
+          Cookies.remove("token")
+          Cookies.remove("username")
+          Cookies.remove("isAdmin")
+          Cookies.remove("token")
+          this.$message({
+            showClose: true,
+            message: '退出登录成功！',
+            type: 'success',
+          });
+
+          this.$router.push("/LoginRegister");
+        }else{
+
+          this.$message({
+            showClose: true,
+            message: '退出登录失败！',
+            type: 'error',
+          });
+        }
+      },err=>{
+        console.log(err.message);
+        this.$message({
+          showClose: true,
+          message: '登录失败！',
+          type: 'error',
+        });
+      })    },
+    initLogout() {
+      let data = {
+        phone: Cookies.get("username"),
+        isAdmin: Cookies.get("isAdmin"),
+      }
+      initLogoutInfo(qs.stringify(data)).then(res=>{
+        if(res.status === 200 && res.error_code ===1){
+          Cookies.remove("username")
+          Cookies.remove("isAdmin")
+          Cookies.remove("token")
+          Cookies.remove("username")
+          Cookies.remove("isAdmin")
+          Cookies.remove("token")
+          this.$message({
+            showClose: true,
+            message: '退出登录成功！',
+            type: 'success',
+          });
+
+          this.$router.push("/LoginRegister");
+        }else{
+
+          this.$message({
+            showClose: true,
+            message: '退出登录失败！',
+            type: 'error',
+          });
+        }
+      },err=>{
+        console.log(err.message);
+        this.$message({
+          showClose: true,
+          message: '登录失败！',
+          type: 'error',
+        });
+      })
+    },
+
   }
 };
 </script>

@@ -1,16 +1,14 @@
 import {initBooksList} from '@/api'
 import qs from "qs";
+import da from "element-ui/src/locale/lang/da";
+
 const state = {
    booksList:[],
 }
 
 const actions = {
-    initBooksList({commit, rootState}){
-        const isAdmin = rootState.User.isAdmin; // 获取 isAdmin 状态
-        console.log()
-        initBooksList(qs.stringify({ isAdmin: isAdmin })).then(res=>{
-
-            console.log(res);
+    initBooksList({commit }){
+        initBooksList().then(res=>{
             if(res.status === 200 && res.error_code === 1)
                 commit('INITBOOKSLIST',res.data)
         },err=>console.log(err.message))
@@ -18,9 +16,12 @@ const actions = {
 }
 
 const mutations = {
-  
+
     INITBOOKSLIST(state,data){
-        state.booksList  = data || []
+        data = data || []
+        state.booksList = data.filter(item=>{
+            return item
+        })
     }
 
 

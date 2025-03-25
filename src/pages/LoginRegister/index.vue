@@ -58,6 +58,7 @@
 
 <script>
 import axios from 'axios'
+
 import {register,login} from '@/api'
 import qs from "qs" 
 import bg01 from './images/bg01.jpg'
@@ -197,7 +198,7 @@ export default {
                console.log(data);
          login(qs.stringify(data)).then(res=>{
                console.log(res);
-               if(res.status == 200){
+               if(res.status === 200 && res.error_code ===1){
                     this.loginMsg.phone = ''
                     this.loginMsg.pwd = ''
                     this.loginloading = false
@@ -206,6 +207,8 @@ export default {
                         message: '登录成功！',
                         type: 'success',
                     });
+                     // Cookies.set('token', res.token, { expires: 1 }); // 7 天有效期
+
                     if(this.isAdmin) this.$store.dispatch('setAdminInfo',res)
                     else this.$store.dispatch('setReaderInfo',res)
                     this.$store.dispatch('initBooksList')
