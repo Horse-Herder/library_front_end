@@ -211,8 +211,10 @@ export default {
 
                     if(this.isAdmin) this.$store.dispatch('setAdminInfo',res)
                     else this.$store.dispatch('setReaderInfo',res)
-                    this.$store.dispatch('initBooksList')
-                    this.$store.dispatch('initCommentsList')
+                    // this.$store.dispatch('initBooksList')
+                  this.$store.dispatch('initBooksList', { page: 1, limit: 10 });
+
+                 this.$store.dispatch('initCommentsList')
                     this.$router.push('/home')
                }else{
                     this.loginloading = false

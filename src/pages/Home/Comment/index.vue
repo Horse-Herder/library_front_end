@@ -77,6 +77,7 @@ import { mapState } from "vuex";
 import { addComment, addPraise, reportComment,auditComment } from "@/api";
 import qs from "qs";
 import axios from 'axios';
+import Cookies from "js-cookie";
 export default {
   name: "Comment",
 
@@ -201,7 +202,10 @@ export default {
     this.$store.dispatch('initCommentsList')
     axios({
       url:'/api/amount',
-      method:'post'
+      method:'post',
+      headers:{
+        'authorization':ci==Cookies.get('token')
+      }
     }).then(res=>{
       console.log(res.data.data[0].mytotal);
       this.amount = res.data.data[0].mytotal
@@ -209,7 +213,10 @@ export default {
     // -----
     axios({
       url:'/api/amountmax',
-      method:'post'
+      method:'post',
+      headers:{
+        'authorization':ci==Cookies.get('token')
+      }
     }).then(res=>{
       console.log(res.data.data[0].mytotal);
       this.maxamount = res.data.data[0].amount

@@ -10,7 +10,7 @@
     </el-input>
     <el-table
       :data="flag == 0 ? booksList : searchBooks"
-      height="450"
+      height="650"
       style="width: 100%"
       v-loading.fullscreen.lock="loading"
       element-loading-text="正在处理..."
@@ -152,15 +152,27 @@
         </template>
       </el-table-column>
     </el-table>
+    <Pagination
+        :currentPage="currentPage"
+        :total="total"
+        :pageSize="pageSize"
+        @update:currentPage="updateCurrentPage"
+        @update:pageSize="updatePageSize"
+    />
   </div>
 </template>
-
+// ... existing code ...
 <script>
 import { mapState } from "vuex";
-import { addReserve, searchBook, changeBookInfo,delBook } from "@/api";
+import { addReserve, searchBook, initBooksList, changeBookInfo, delBook } from "@/api";
 import qs from "qs";
+import Pagination from "@/components/Pagination.vue";
+
 export default {
   name: "SearchBooks",
+  components: {
+    Pagination
+  },
   data() {
     return {
       loading: false,
@@ -176,31 +188,17 @@ export default {
   methods: {
     bookReserve(index, row) {
       this.loading = true;
-      console.log(index, row);
-      let readerId = this.readerId;
-      let bookId = row.bookId;
-      let date = this.$moment().format("YYYY-MM-DD HH:mm:ss");
-      let reserveObj = { readerId, bookId, date, status: "已预约" };
-      console.log(reserveObj);
-      //  添加预约记录
+      const { bookId } = row;
+      const date = this.$moment().format("YYYY-MM-DD HH:mm:ss");
+      const reserveObj = { readerId: this.readerId, bookId, date, status: "已预约" };
       addReserve(qs.stringify(reserveObj)).then(
         (res) => {
           this.loading = false;
-          console.log(res);
-          if (res.error_code=== 0 ) {
-            this.$message({
-              showClose: true,
-              message: res.msg,
-              type: "error",
-            });
-          } else if (res.status === 200 && res.error_code=== 1 ) {
-            this.$message({
-              showClose: true,
-              message: res.msg,
-              type: "success",
-            });
-          }
-
+          this.$message({
+            showClose: true,
+            message: res.msg,
+            type: res.error_code === 0 ? "error" : "success",
+          });
           this.$store.dispatch("initReserve", { readerId: this.readerId });
         },
         (err) => {
@@ -209,16 +207,16 @@ export default {
         }
       );
     },
-    searchBook(e) {
+    searchBook(e, page = this.page, limit = this.pageSize) {
       this.loading = true;
-      searchBook(qs.stringify({ name: this.name })).then(
+      initBooksList({ name: this.name, page, limit }).then(
         (res) => {
           this.loading = false;
-          e.target.blur();
-          this.flag = 1;
-          this.searchBooks = res.data;
-          console.log(res);
-          if (res.error_code === 0 || res.status !== 200) {
+          if (res.error_code === 1 || res.status === 200) {
+            e.target.blur();
+            this.flag = 1;
+            this.searchBooks = res.data;
+          } else {
             this.$message({
               showClose: true,
               message: "未找到相关书籍！",
@@ -236,26 +234,22 @@ export default {
       this.flag = 0;
       this.searchBooks = [];
     },
-    changeBookAuthor(row) {
-      console.log(row);
-      var bookId = row.bookId;
-      var status = 2;
-      this.$prompt("请输入ISBN", "提示", {
+    promptChange(row, field, label, status) {
+      const { bookId } = row;
+      this.$prompt(`请输入${label}`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
-        inputValue: row.author,
+        inputValue: row[field],
       })
         .then(({ value }) => {
           this.$message({
             type: "success",
-            message: "你修改的ISBN是: " + value,
+            message: `你修改的${label}是: ${value}`,
           });
-          // 修改的信息
-          var infoObj = { bookId, value, status };
+          const infoObj = { bookId, value, status };
           changeBookInfo(qs.stringify(infoObj)).then(
             (res) => {
-              console.log(res);
-              this.$store.dispatch("initBooksList");
+              this.$store.dispatch('initBooksList', { page: 1, limit: 10 });
               this.$store.dispatch("initReserveList");
             },
             (err) => {
@@ -269,69 +263,30 @@ export default {
             message: "取消输入",
           });
         });
+    },
+    changeBookAuthor(row) {
+      this.promptChange(row, 'author', '图书作者', 2);
     },
     changeBookPosition(row) {
-      console.log(row);
-      var bookId = row.bookId;
-      var status = 3;
-      this.$prompt("请输入位置", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: row.position,
-      })
-        .then(({ value }) => {
-          // 修改的信息
-          var infoObj = { bookId, value, status };
-          changeBookInfo(qs.stringify(infoObj)).then(
-            (res) => {
-              console.log(res);
-              if (res.status == 0) {
-                this.$message({
-                  type: "error",
-                  message: res.msg,
-                });
-              } else {
-                this.$message({
-                  type: "success",
-                  message: "你修改的位置是: " + value,
-                });
-              }
-              this.$store.dispatch("initBooksList");
-              this.$store.dispatch("initReserveList");
-            },
-            (err) => {
-              console.log(err.message);
-            }
-          );
-        })
-        .catch(() => {
-          this.$message({
-            type: "info",
-            message: "取消输入",
-          });
-        });
+      this.promptChange(row, 'position', '书籍位置', 3);
     },
-    changeCurrentAmount(row){
-        console.log(row);
-      var bookId = row.bookId;
-      var status = 4;
+    changeCurrentAmount(row) {
+      const { bookId, amount } = row;
       this.$prompt("请输入库存", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
-        inputValue: row.amount,
+        inputValue: amount,
       })
         .then(({ value }) => {
           this.$message({
             type: "success",
-            message: "你修改当前库存是: " + value,
+            message: `你修改当前库存是: ${value}`,
           });
-          let difference = value - row.amount
-          // 修改的信息
-          var infoObj = { bookId, value, status, difference };
+          const difference = value - amount;
+          const infoObj = { bookId, value, status: 4, difference };
           changeBookInfo(qs.stringify(infoObj)).then(
             (res) => {
-              console.log(res);
-              this.$store.dispatch("initBooksList");
+              this.$store.dispatch('initBooksList', { page: 1, limit: 10 });
               this.$store.dispatch("initReserveList");
             },
             (err) => {
@@ -347,151 +302,68 @@ export default {
         });
     },
     changePress(row) {
-      console.log(row);
-      var bookId = row.bookId;
-      var status = 5;
-      this.$prompt("请输入出版社", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: row.press,
-      })
-          .then(({ value }) => {
-            this.$message({
-              type: "success",
-              message: "你修改的出版社是: " + value,
-            });
-            // 修改的信息
-            var infoObj = { bookId, value, status };
-            changeBookInfo(qs.stringify(infoObj)).then(
-                (res) => {
-                  console.log(res);
-                  this.$store.dispatch("initBooksList");
-                  this.$store.dispatch("initReserveList");
-                },
-                (err) => {
-                  console.log(err.message);
-                }
-            );
-          })
-          .catch(() => {
-            this.$message({
-              type: "info",
-              message: "取消输入",
-            });
-          });
+      this.promptChange(row, 'press', '出版社', 5);
     },
     changeISBN(row) {
-      console.log(row);
-      var bookId = row.bookId;
-      var status = 6;
-      this.$prompt("请输入ISBN", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue: row.isbn,
-      })
-          .then(({ value }) => {
-            this.$message({
-              type: "success",
-              message: "你修改的ISBN是: " + value,
-            });
-            // 修改的信息
-            var infoObj = { bookId, value, status };
-            changeBookInfo(qs.stringify(infoObj)).then(
-                (res) => {
-                  console.log(res);
-                  this.$store.dispatch("initBooksList");
-                  this.$store.dispatch("initReserveList");
-                },
-                (err) => {
-                  console.log(err.message);
-                }
-            );
-          })
-          .catch(() => {
-            this.$message({
-              type: "info",
-              message: "取消输入",
-            });
-          });
+      this.promptChange(row, 'isbn', 'ISBN', 6);
     },
     changeBookStatus(row) {
-      console.log("修改状态:", row);
-      var bookId = row.bookId;
-
-      let value = row.status; // 1: 上线，0: 未上线
-      let status = 7; // 1: 上线，0: 未上线
-      var infoObj = { bookId, value, status};
-
-      // 发送请求修改状态
+      const { bookId, status } = row;
+      const infoObj = { bookId, value: status, status: 7 };
       changeBookInfo(qs.stringify(infoObj))
-          .then((res) => {
-            console.log(res);
-            if (res.status == 200 && res.error_code == 1) {
-              this.$message({
-                type: "success",
-                message: "状态更新成功",
-              });
-            } else {
-              this.$message({
-                type: "error",
-                message: res.msg || "状态更新失败",
-              });
-            }
-            // 刷新图书列表
-            this.$store.dispatch("initBooksList");
-          })
-          .catch((err) => {
-            console.log(err.message);
-            this.$message({
-              type: "error",
-              message: "请求失败：" + err.message,
-            });
-          });
-    },
-    delBook(row){
-      console.log(row);
-      let bookId = row.bookId;
-      delBook(qs.stringify({bookId})).then(res=>{
-        console.log(res);
-        if(res.status == 200 && res.error_code == 1){
+        .then((res) => {
           this.$message({
-            type: "success",
-            message: res.msg,
+            type: res.status === 200 && res.error_code === 1 ? "success" : "error",
+            message: res.msg || "状态更新失败",
           });
-          this.$store.dispatch("initBooksList");
-          this.$store.dispatch("initReserveList");
-        }else{
+          this.$store.dispatch('initBooksList', { page: 1, limit: 10 });
+        })
+        .catch((err) => {
+          console.log(err.message);
           this.$message({
             type: "error",
-            message: res.msg || "删除失败，请重试",
+            message: `请求失败：${err.message}`,
           });
-        }
-
-    },err=>{
-      console.log(err.message);
-    })
-
+        });
+    },
+    delBook(row) {
+      const { bookId } = row;
+      delBook(qs.stringify({ bookId })).then(res => {
+        this.$message({
+          type: res.status === 200 && res.error_code === 1 ? "success" : "error",
+          message: res.msg || "删除失败，请重试",
+        });
+        this.$store.dispatch('initBooksList', { page: 1, limit: 10 });
+        this.$store.dispatch("initReserveList");
+      }, err => {
+        console.log(err.message);
+      });
+    },
+    updateCurrentPage(page) {
+      this.$store.commit('SET_CURRENT_PAGE', page);
+      this.searchBook({ target: { blur: () => {} } }, page, this.pageSize);
+    },
+    updatePageSize(size) {
+      this.$store.commit('SET_PAGE_SIZE', size);
+      this.searchBook({ target: { blur: () => {} } }, this.currentPage, size);
     }
   },
   computed: {
     ...mapState({
-      booksList(state) {
-        return state.Books.booksList;
-      },
-      readerId(state) {
-        return state.User.readerInfo.readerId;
-      },
-      isAdmin(state) {
-        return state.User.isAdmin;
-      },
+      booksList: state => state.Books.booksList,
+      currentPage: state => state.Books.currentPage,
+      pageSize: state => state.Books.pageSize,
+      total: state => state.Books.total,
+      readerId: state => state.User.readerInfo.readerId,
+      isAdmin: state => state.User.isAdmin,
     }),
   },
   mounted() {
-    this.$store.dispatch('initBooksList')
-    console.log(this.searchBooks);
+    this.searchBook({ target: { blur: () => {} } }, 1, 10);
   },
 };
 </script>
+// ... existing code ...
 
 <style lang="less" scoped>
 .demo-table-expand {

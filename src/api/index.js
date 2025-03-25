@@ -23,10 +23,15 @@ export const initLogoutInfo = (loginObj)=>requests({
 
 // 书籍接口
 
-export const initBooksList = (bookNameObj) => requests({
+export const initBooksList = ({name, page, limit}) => requests({
     url: '/books',
     method: 'post',
-    data: bookNameObj // 传递包含 isAdmin 的对象
+
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    // 传递包含 page 和 limit 的对象作为请求体
+    data: JSON.stringify({ name, page, limit })  // 传递包含 isAdmin 的对象
 });
 
 // 评论区接口
@@ -120,9 +125,6 @@ export const alertPerson = (infoObj) => requests({
     method: 'post',
     data:infoObj
 })
-
-
-
 
 // 读者请求借阅记录接口
 export const initBorrows = (readerId) => requests({
